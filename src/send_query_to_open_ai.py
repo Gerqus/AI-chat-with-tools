@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import List
 import openai
 import torch
-from src.constants import tools, OpenAIRoles
+from src.constants import OpenAIRoles
 from transformers import AutoTokenizer
 from src.constants import openai_system_message, chat_model_used
 
@@ -12,8 +12,6 @@ system_message = {
     "role": "system",
     "content": openai_system_message,
 }
-
-system_message['content'] += "\n".join([tool_name.value + ": " + tool_desc for tool_name, tool_desc in tools.items()])
 
 TIMEOUT_SECS = 60
 MESSAGES_COUNT_LIMIT = 4000

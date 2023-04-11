@@ -9,8 +9,6 @@ import weaviate
 from googlesearch import SearchResult
 
 from src.constants import AvailableActions, OpenAIRoles, chat_model_used, openai_system_message
-from src.get_page_content_summary import get_page_content_summary
-from src.get_permission_from_user import get_permission_from_user
 
 client = weaviate.Client(
     url="http://localhost:8080",
@@ -19,6 +17,8 @@ client = weaviate.Client(
     }
 )
 
+from src.get_page_content_summary import get_page_content_summary
+from src.get_permission_from_user import get_permission_from_user
 from src.convert_query_results_to_chatbot_readable import \
     convert_query_results_to_chatbot_readable
 from src.delete_data_from_database import delete_data_from_database
