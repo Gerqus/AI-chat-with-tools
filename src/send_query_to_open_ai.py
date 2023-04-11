@@ -4,7 +4,7 @@ import openai
 import torch
 from src.constants import OpenAIRoles
 from transformers import AutoTokenizer
-from src.constants import openai_system_message, chat_model_used
+from src.constants import openai_system_message
 
 tokenizer = AutoTokenizer.from_pretrained("gpt2")
 
@@ -28,7 +28,12 @@ class MessageRepresentation:
         if tokens_count == 0:
             self.tokens_count = count_message_tokens(content)
         self.tokens_count = tokens_count
-
+    
+    def to_msg(self):
+        return {
+            "role": self.role.name,
+            "content": self.content
+        }
 
 def count_message_tokens(message: str) -> int:
     input_ids = torch.tensor(tokenizer.encode(message)).unsqueeze(0)

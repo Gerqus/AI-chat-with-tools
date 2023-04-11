@@ -3,3 +3,4 @@ chats
 *.bak
 docker-compose*
 TODO
+.vscode

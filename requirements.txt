@@ -3,3 +3,4 @@ openai
 torch
 googlesearch-python
 transformers
+newspaper3k

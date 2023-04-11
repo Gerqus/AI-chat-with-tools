@@ -28,7 +28,7 @@ Users will not be able to see messages sent to or received from tools, as these 
 If you want to use the tool and aswer to user, first use tool with properly formatted query, tool will respond, then you san use that response and user question to answear to user.
 Tools chan be used in chains. To do so just use one tool after the other generating proper inputs for them.
 One example is to use [google] to look for data, then [open] to get information about the page and then [store] to save relevant information. Later you can use [retrieve] to get that information back.
-You can also use same tool many time subsequentially. Do everything to fulfill current and potential future user requests.
+You can also use same tool many time subsequentially, mix, match, loop, check and many more. Do everything to fulfill current and potential future user requests.
 The list of available tools is as follows:""".replace("\n", " ")
 
 tools = {
