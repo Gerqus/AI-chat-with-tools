@@ -2,9 +2,9 @@ from dataclasses import dataclass
 from typing import List
 import openai
 import torch
-from constants import tools, OpenAIRoles
+from src.constants import tools, OpenAIRoles
 from transformers import AutoTokenizer
-from constants import openai_system_message, chat_model_used
+from src.constants import openai_system_message, chat_model_used
 
 tokenizer = AutoTokenizer.from_pretrained("gpt2")
 
@@ -13,7 +13,7 @@ system_message = {
     "content": openai_system_message,
 }
 
-system_message['content'] += " | ".join([tool_name.value + ": " + tool_desc for tool_name, tool_desc in tools.items()])
+system_message['content'] += "\n".join([tool_name.value + ": " + tool_desc for tool_name, tool_desc in tools.items()])
 
 TIMEOUT_SECS = 60
 MESSAGES_COUNT_LIMIT = 4000

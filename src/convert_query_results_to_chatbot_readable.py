@@ -1,6 +1,6 @@
 from typing import List
-from constants import database_dataset_text_field_name
-from get_data_from_database import SearchResult, SearchResultEntry
+from src.constants import database_dataset_text_field_name
+from src.get_data_from_database import SearchResult, SearchResultEntry
 
 def convert_query_results_to_chatbot_readable(result: SearchResult) -> str:
     formatted_result = 'Results, ordered from most to least similar:\n'

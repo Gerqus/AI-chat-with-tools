@@ -8,9 +8,9 @@ from typing import List
 import weaviate
 from googlesearch import SearchResult
 
-from constants import AvailableActions, OpenAIRoles, chat_model_used, openai_system_message
-from get_page_content_summary import get_page_content_summary
-from get_permission_from_user import get_permission_from_user
+from src.constants import AvailableActions, OpenAIRoles, chat_model_used, openai_system_message
+from src.get_page_content_summary import get_page_content_summary
+from src.get_permission_from_user import get_permission_from_user
 
 client = weaviate.Client(
     url="http://localhost:8080",
@@ -19,16 +19,16 @@ client = weaviate.Client(
     }
 )
 
-from convert_query_results_to_chatbot_readable import \
+from src.convert_query_results_to_chatbot_readable import \
     convert_query_results_to_chatbot_readable
-from delete_data_from_database import delete_data_from_database
-from get_data_from_database import get_data_from_database
-from parse_for_potential_action import parse_for_potential_action
-from save_data_to_database import save_data_to_database
-from send_query_to_open_ai import (MessageRepresentation,
+from src.delete_data_from_database import delete_data_from_database
+from src.get_data_from_database import get_data_from_database
+from src.parse_for_potential_action import parse_for_potential_action
+from src.save_data_to_database import save_data_to_database
+from src.send_query_to_open_ai import (MessageRepresentation,
                                    add_message_to_history,
                                    send_messages_history_to_open_ai)
-from search_google import search_google
+from src.search_google import search_google
 
 #log file name with date and time
 if not os.path.exists('chats'):
@@ -83,72 +83,84 @@ try:
         add_message_to_history(ai_response, OpenAIRoles.assistant, messages_history)
 
         # The AI decides on the action and generates a query
-        try:
-            action_descriptor = parse_for_potential_action(ai_response)
-        except Exception:
-            message_to_chatbot = f'[script] There was an error chosing the tool (wrong tool name?). Please try again.'
-            continue
+        
+        tool_already_used = False
+        sections = ai_response.split("\n\n")
+        for section in sections:
+            if tool_already_used:
+                break
 
-        if action_descriptor.action_name == AvailableActions.store:
-            log_msg("[store] tool selected")
-            if (action_descriptor.action_data is None):
-                message_to_chatbot = f"[{AvailableActions.store.value}] Could not store empty data string."
-            else:
-                save_data_to_database(client, action_descriptor.action_data)
-                message_to_chatbot = "[script] Data stored successfully."
-            continue
-        elif action_descriptor.action_name == AvailableActions.retrieve:
-            log_msg("[retrieve] tool selected")
-            if (action_descriptor.action_data is None):
-                message_to_chatbot = f"[{AvailableActions.retrieve.value}] Could not search by empty string."
-            else:
-                query_results = get_data_from_database(client, action_descriptor.action_data)
-                chat_bot_readable_results: str | None = convert_query_results_to_chatbot_readable(query_results)
-                if chat_bot_readable_results is None:
-                    message_to_chatbot = f"[{AvailableActions.retrieve.value}] Could not retrieve data."
+            try:
+                action_descriptor = parse_for_potential_action(section)
+            except Exception:
+                message_to_chatbot = f'[script] There was an error chosing the tool (wrong tool name?). Please try again.'
+                continue
+
+            if action_descriptor is None or action_descriptor.action_name is None:
+                continue
+                
+            tool_already_used = True
+            if action_descriptor.action_name == AvailableActions.store:
+                log_msg("[store] tool selected")
+                if (action_descriptor.action_data is None):
+                    message_to_chatbot = f"[{AvailableActions.store.value}] Could not store empty data string."
                 else:
-                    message_to_chatbot = "[script] Data retrieved successfully. Query results are:" + chat_bot_readable_results
-            continue
-        elif action_descriptor.action_name == AvailableActions.delete:
-            log_msg("[delete] tool selected")
-            if (action_descriptor.action_data is None):
-                message_to_chatbot = f"[{AvailableActions.delete.value}] Could not delete by empty string."
+                    save_data_to_database(client, action_descriptor.action_data)
+                    message_to_chatbot = "[script] Data stored successfully."
+                continue
+            elif action_descriptor.action_name == AvailableActions.retrieve:
+                log_msg("[retrieve] tool selected")
+                if (action_descriptor.action_data is None):
+                    message_to_chatbot = f"[{AvailableActions.retrieve.value}] Could not search by empty string."
+                else:
+                    query_results = get_data_from_database(client, action_descriptor.action_data)
+                    chat_bot_readable_results: str | None = convert_query_results_to_chatbot_readable(query_results)
+                    if chat_bot_readable_results is None:
+                        message_to_chatbot = f"[{AvailableActions.retrieve.value}] Could not retrieve data."
+                    else:
+                        message_to_chatbot = "[script] Data retrieved successfully. Query results are:" + chat_bot_readable_results
+                continue
+            elif action_descriptor.action_name == AvailableActions.delete:
+                log_msg("[delete] tool selected")
+                if (action_descriptor.action_data is None):
+                    message_to_chatbot = f"[{AvailableActions.delete.value}] Could not delete by empty string."
+                else:
+                    query_results = delete_data_from_database(client, action_descriptor.action_data)
+                    message_to_chatbot = "[script] Data deleted successfully." 
+                continue
+            elif action_descriptor.action_name == AvailableActions.google:
+                log_msg("[google] tool selected")
+                if (action_descriptor.action_data is None):
+                    message_to_chatbot = f"[{AvailableActions.google.value}] Could not search by empty string."
+                else:
+                    user_permission = get_permission_from_user(f"Do you want to search on google for '{action_descriptor.action_data}'?")
+                    if not user_permission:
+                        message_to_chatbot = "[script] Search denied."
+                        continue
+                    log_msg("Search approved")
+                    search_result: List[SearchResult] = search_google(action_descriptor.action_data)
+                    message_to_chatbot = f"[script] search successful. Results are:\n" + "\n".join(["- " + search_result.url + " -> " + search_result.description + ";" for search_result in search_result])
+                continue
+            elif action_descriptor.action_name == AvailableActions.open:
+                log_msg("[open] tool selected")
+                if (action_descriptor.action_data is None):
+                    message_to_chatbot = f"[{AvailableActions.open.value}] Could not open page under empty string url."
+                else:
+                    user_permission = get_permission_from_user(f"Do you want to open '{action_descriptor.action_data}' for getting a summary of content?")
+                    if not user_permission:
+                        message_to_chatbot = "[script] Page open denied."
+                        continue
+                    log_msg("Page open approved")
+                    page_summary: str = get_page_content_summary(action_descriptor.action_data)
+                    if page_summary == "":
+                        message_to_chatbot = f"[{AvailableActions.open.value}] Could not open page under url {action_descriptor.action_data}. Sorry."
+                    message_to_chatbot = f"[script] open successful. Page summary: {page_summary}."
+                continue
             else:
-                query_results = delete_data_from_database(client, action_descriptor.action_data)
-                message_to_chatbot = "[script] Data deleted successfully." 
-            continue
-        elif action_descriptor.action_name == AvailableActions.google:
-            log_msg("[google] tool selected")
-            if (action_descriptor.action_data is None):
-                message_to_chatbot = f"[{AvailableActions.google.value}] Could not search by empty string."
-            else:
-                user_permission = get_permission_from_user(f"Do you want to search on google for '{action_descriptor.action_data}'?")
-                if not user_permission:
-                    message_to_chatbot = "[script] Search denied."
-                    continue
-                log_msg("Search approved")
-                search_result: List[SearchResult] = search_google(action_descriptor.action_data)
-                message_to_chatbot = f"[script] search successful. Results are:\n" + "\n".join(["- " + search_result.url + " -> " + search_result.description + ";" for search_result in search_result])
-            continue
-        elif action_descriptor.action_name == AvailableActions.open:
-            log_msg("[open] tool selected")
-            if (action_descriptor.action_data is None):
-                message_to_chatbot = f"[{AvailableActions.open.value}] Could not open page under empty string url."
-            else:
-                user_permission = get_permission_from_user(f"Do you want to open '{action_descriptor.action_data}' for getting a summary of content?")
-                if not user_permission:
-                    message_to_chatbot = "[script] Page open denied."
-                    continue
-                log_msg("Page open approved")
-                page_summary: str = get_page_content_summary(action_descriptor.action_data)
-                if page_summary == "":
-                    message_to_chatbot = f"[{AvailableActions.open.value}] Could not open page under url {action_descriptor.action_data}. Sorry."
-                message_to_chatbot = f"[script] open successful. Page summary: {page_summary}."
-            continue
-        else:
-            message_to_chatbot = ''
-            continue
+                tool_already_used = False
+                message_to_chatbot = ''
+                continue
 
-        raise Exception("Unknown action detected or some action did not continue the loop")
+            raise Exception("Unknown action detected or some action did not continue the loop")
 except KeyboardInterrupt:
     log_msg("\nGoodbye!")

@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import List
 from weaviate import Client
-from constants import database_collection_name, database_dataset_text_field_name
+from src.constants import database_collection_name, database_dataset_text_field_name
 
 @dataclass
 class AdditionalInformation(dict):

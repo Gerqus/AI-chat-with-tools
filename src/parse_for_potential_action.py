@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from constants import AvailableActions
+from src.constants import AvailableActions
 
 @dataclass
 class ActionDescriptor:

@@ -1,6 +1,6 @@
 from weaviate import Client
-from constants import database_collection_name
-from get_data_from_database import get_data_from_database
+from src.constants import database_collection_name
+from src.get_data_from_database import get_data_from_database
 
 def delete_data_from_database(client: Client, text_to_delete: str):
     search_result = get_data_from_database(client, text_to_delete)

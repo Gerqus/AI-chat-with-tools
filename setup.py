@@ -1,5 +1,5 @@
 import weaviate
-from constants import database_collection_name, database_dataset_text_field_name
+from src.constants import database_collection_name, database_dataset_text_field_name
 
 # Connect to database server
 client = weaviate.Client("http://localhost:8080")

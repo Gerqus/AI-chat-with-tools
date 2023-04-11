@@ -1,8 +1,8 @@
 from bs4 import BeautifulSoup
 import requests
-from constants import OpenAIRoles
+from src.constants import OpenAIRoles
 
-from send_query_to_open_ai import MessageRepresentation, send_messages_history_to_open_ai, count_message_tokens
+from src.send_query_to_open_ai import MessageRepresentation, send_messages_history_to_open_ai, count_message_tokens
 
 def get_page_content_summary(page_url: str) -> str:
     session = requests.Session()
