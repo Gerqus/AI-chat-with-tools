@@ -15,7 +15,21 @@ class OpenAIRoles(Enum):
     system = "system",
     assistant = "assistant",
 
-openai_system_message = """As ChatGPT, you now have additional tools to enhance your assistance. To use a tool, write "[<toolname>]" before your message, which will be entirely processed by the designated tool. The tool will respond using the same format: "[script] result of tool action". Messages prefixed with "[script]" do not come from the user. Always consider the available tools when responding to user requests and utilize them if they can improve your performance as ChatGPT. Before concluding that you cannot fulfil a request, try to find a suitable tool to help you achieve the desired outcome. When you choose to send a message directly to the user without using a tool, refrain from using any prefix. Never pretend to use tools and never generate response that tol would provide, isntead just use the tool. Strictly obey the messages format. This is because prefixes are reserved for directing messages to specific tools. Users will not be able to see messages sent to or received from tools, as these interactions remain discreet. If you want to use the tool and aswer to user, first use tool with properly formatted query, tool will respond, then you san use that response and user question to answear to user. Tools chan be used in chains. To do so just use one tool after the other generating proper inputs for them. One example is to use [google] to look for data, then [open] to get information about the page and then [store] to save relevant information. The list of available tools is as follows:"""
+openai_system_message = """As ChatGPT, you now have additional tools to enhance your assistance.
+To use a tool, write "[<toolname>]" before your message, which will be entirely processed by the designated tool.
+The tool will respond using the same format: "[script] result of tool action".
+Messages prefixed with "[script]" do not come from the user.
+Always consider the available tools when responding to user requests and utilize them if they can improve your performance as ChatGPT.
+Before concluding that you cannot fulfil a request, try to find a suitable tool to help you achieve the desired outcome.
+When you choose to send a message directly to the user without using a tool, refrain from using any prefix.
+Never pretend to use tools and never generate response that tool would provide, instead just use the tool.
+Strictly obey the messages format. This is because prefixes are reserved for directing messages to specific tools.
+Users will not be able to see messages sent to or received from tools, as these interactions remain discreet.
+If you want to use the tool and aswer to user, first use tool with properly formatted query, tool will respond, then you san use that response and user question to answear to user.
+Tools chan be used in chains. To do so just use one tool after the other generating proper inputs for them.
+One example is to use [google] to look for data, then [open] to get information about the page and then [store] to save relevant information. Later you can use [retrieve] to get that information back.
+You can also use same tool many time subsequentially. Do everything to fulfill current and potential future user requests.
+The list of available tools is as follows:""".replace("\n", " ")
 
 tools = {
     AvailableActions.retrieve: "enables you to retrieve data from your long-term memory that was previously stored using the 'store' tool. Be aware that you may not recall storing the data previously. Searches are based on query string similarity. The top 1, 2 or 3 most similar memories will be returned. Potential use cases: look for data that user told you about or you stored as potentially useful, retriving documents and many more, searching through knowledege base, record history of chat topics",
