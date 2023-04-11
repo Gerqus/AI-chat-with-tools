@@ -1,5 +1,6 @@
 import logging
 import os
+import readline
 import sys
 from datetime import datetime
 from typing import List
@@ -73,8 +74,10 @@ try:
 
         if ai_response == '' or ai_response is None:
             log_msg("\t(empty response)")
-            message_to_chatbot = ''
-            continue
+            retry = get_permission_from_user("The AI did not respond. Do you want to try again?")
+            if not retry:
+                message_to_chatbot = ''
+                continue
 
         log_msg(f"--- {chat_model_used}: " + ai_response)
         add_message_to_history(ai_response, OpenAIRoles.assistant, messages_history)
@@ -119,7 +122,7 @@ try:
             if (action_descriptor.action_data is None):
                 message_to_chatbot = f"[{AvailableActions.google.value}] Could not search by empty string."
             else:
-                user_permission = get_permission_from_user(f"Do you want to search on google for {action_descriptor.action_data}?")
+                user_permission = get_permission_from_user(f"Do you want to search on google for '{action_descriptor.action_data}'?")
                 if not user_permission:
                     message_to_chatbot = "[script] Search denied."
                     continue
@@ -132,15 +135,15 @@ try:
             if (action_descriptor.action_data is None):
                 message_to_chatbot = f"[{AvailableActions.open.value}] Could not open page under empty string url."
             else:
-                user_permission = get_permission_from_user(f"Do you want to open {action_descriptor.action_data} for getting a summary of content?")
+                user_permission = get_permission_from_user(f"Do you want to open '{action_descriptor.action_data}' for getting a summary of content?")
                 if not user_permission:
                     message_to_chatbot = "[script] Page open denied."
                     continue
                 log_msg("Page open approved")
-                page_content: str = get_page_content_summary(action_descriptor.action_data)
-                if page_content is "":
+                page_summary: str = get_page_content_summary(action_descriptor.action_data)
+                if page_summary == "":
                     message_to_chatbot = f"[{AvailableActions.open.value}] Could not open page under url {action_descriptor.action_data}. Sorry."
-                message_to_chatbot = f"[script] open successful. Opening {action_descriptor.action_data}."
+                message_to_chatbot = f"[script] open successful. Page summary: {page_summary}."
             continue
         else:
             message_to_chatbot = ''

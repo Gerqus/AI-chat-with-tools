@@ -28,21 +28,21 @@ class MessageRepresentation:
         self.content = content
         self.role = role
         if tokens_count == 0:
-            self.tokens_count = _count_message_tokens(content)
+            self.tokens_count = count_message_tokens(content)
         self.tokens_count = tokens_count
 
 
-def _count_message_tokens(message: str) -> int:
+def count_message_tokens(message: str) -> int:
     input_ids = torch.tensor(tokenizer.encode(message)).unsqueeze(0)
     num_tokens = input_ids.shape[1]
     return num_tokens
 
-total_history_tokens_count = _count_message_tokens(system_message["content"])
+total_history_tokens_count = count_message_tokens(system_message["content"])
 
 def add_message_to_history(message: str, role: OpenAIRoles, messages_history: List[MessageRepresentation]):
     global total_history_tokens_count
 
-    message_tokens_count = _count_message_tokens(message)
+    message_tokens_count = count_message_tokens(message)
 
     messages_history.append(MessageRepresentation(
         content = message,

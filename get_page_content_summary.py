@@ -1,9 +1,8 @@
 from bs4 import BeautifulSoup
 import requests
-import openai
 from constants import OpenAIRoles
 
-from send_query_to_open_ai import MessageRepresentation, send_messages_history_to_open_ai
+from send_query_to_open_ai import MessageRepresentation, send_messages_history_to_open_ai, count_message_tokens
 
 def get_page_content_summary(page_url: str) -> str:
     session = requests.Session()
@@ -21,6 +20,11 @@ def get_page_content_summary(page_url: str) -> str:
         page_text = page_text.replace('  ', ' ')
 
         chat_model_used = 'gpt-3.5-turbo'
+
+        tokens_of_page_text = count_message_tokens(page_text)
+        while (tokens_of_page_text > 4097):
+            page_text = page_text[:-1 * (tokens_of_page_text - 500)]
+            tokens_of_page_text = count_message_tokens(page_text)
 
         messages = [
             MessageRepresentation(

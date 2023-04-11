@@ -2,3 +2,4 @@ weaviate-client
 openai
 torch
 googlesearch-python
+transformers
