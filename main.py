@@ -5,8 +5,10 @@ from datetime import datetime
 from typing import List
 
 import weaviate
+from googlesearch import SearchResult
 
 from constants import AvailableActions, OpenAIRoles, chat_model_used, openai_system_message
+from get_page_content_summary import get_page_content_summary
 
 client = weaviate.Client(
     url="http://localhost:8080",
@@ -24,6 +26,7 @@ from save_data_to_database import save_data_to_database
 from send_query_to_open_ai import (MessageRepresentation,
                                    add_message_to_history,
                                    send_messages_history_to_open_ai)
+from search_google import search_google
 
 #log file name with date and time
 if not os.path.exists('chats'):
@@ -65,7 +68,7 @@ try:
 
         # Process the user_message with the AI
         add_message_to_history(message_to_chatbot, OpenAIRoles.user, messages_history)
-        ai_response = send_messages_history_to_open_ai(messages_history)
+        ai_response = send_messages_history_to_open_ai(messages_history, chat_model_used)
 
         if ai_response == '' or ai_response is None:
             log_msg("\t(empty response)")
@@ -109,6 +112,24 @@ try:
             else:
                 query_results = delete_data_from_database(client, action_descriptor.action_data)
                 message_to_chatbot = "[script] Data deleted successfully." 
+            continue
+        elif action_descriptor.action_name == AvailableActions.google:
+            log_msg("[google] tool selected")
+            if (action_descriptor.action_data is None):
+                message_to_chatbot = f"[{AvailableActions.google.value}] Could not search by empty string."
+            else:
+                search_result: List[SearchResult] = search_google(action_descriptor.action_data)
+                message_to_chatbot = f"[script] search successful. Results are:\n" + "\n".join(["- " + search_result.url + " -> " + search_result.description + ";" for search_result in search_result])
+            continue
+        elif action_descriptor.action_name == AvailableActions.open:
+            log_msg("[open] tool selected")
+            if (action_descriptor.action_data is None):
+                message_to_chatbot = f"[{AvailableActions.open.value}] Could not open page under empty string url."
+            else:
+                page_content: str = get_page_content_summary(action_descriptor.action_data)
+                if page_content is "":
+                    message_to_chatbot = f"[{AvailableActions.open.value}] Could not open page under url {action_descriptor.action_data}. Sorry."
+                message_to_chatbot = f"[script] open successful. Opening {action_descriptor.action_data}."
             continue
         else:
             message_to_chatbot = ''

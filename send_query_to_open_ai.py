@@ -24,6 +24,13 @@ class MessageRepresentation:
     role: OpenAIRoles
     tokens_count: int
 
+    def __init__(self, content: str, role: OpenAIRoles, tokens_count: int = 0):
+        self.content = content
+        self.role = role
+        if tokens_count == 0:
+            self.tokens_count = _count_message_tokens(content)
+        self.tokens_count = tokens_count
+
 
 def _count_message_tokens(message: str) -> int:
     input_ids = torch.tensor(tokenizer.encode(message)).unsqueeze(0)
@@ -44,7 +51,7 @@ def add_message_to_history(message: str, role: OpenAIRoles, messages_history: Li
     ))
     total_history_tokens_count += message_tokens_count
 
-def send_messages_history_to_open_ai(messages_history: List[MessageRepresentation]) -> str:
+def send_messages_history_to_open_ai(messages_history: List[MessageRepresentation], model) -> str:
     global total_history_tokens_count
 
     while True:
@@ -70,7 +77,7 @@ def send_messages_history_to_open_ai(messages_history: List[MessageRepresentatio
     
     try:
         completion = openai.ChatCompletion.create(
-            model=chat_model_used,
+            model=model,
             max_tokens=100,
             temperature=0.7,
             top_p=1,
