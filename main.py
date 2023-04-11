@@ -9,6 +9,7 @@ from googlesearch import SearchResult
 
 from constants import AvailableActions, OpenAIRoles, chat_model_used, openai_system_message
 from get_page_content_summary import get_page_content_summary
+from get_permission_from_user import get_permission_from_user
 
 client = weaviate.Client(
     url="http://localhost:8080",
@@ -118,6 +119,11 @@ try:
             if (action_descriptor.action_data is None):
                 message_to_chatbot = f"[{AvailableActions.google.value}] Could not search by empty string."
             else:
+                user_permission = get_permission_from_user(f"Do you want to search on google for {action_descriptor.action_data}?")
+                if not user_permission:
+                    message_to_chatbot = "[script] Search denied."
+                    continue
+                log_msg("Search approved")
                 search_result: List[SearchResult] = search_google(action_descriptor.action_data)
                 message_to_chatbot = f"[script] search successful. Results are:\n" + "\n".join(["- " + search_result.url + " -> " + search_result.description + ";" for search_result in search_result])
             continue
@@ -126,6 +132,11 @@ try:
             if (action_descriptor.action_data is None):
                 message_to_chatbot = f"[{AvailableActions.open.value}] Could not open page under empty string url."
             else:
+                user_permission = get_permission_from_user(f"Do you want to open {action_descriptor.action_data} for getting a summary of content?")
+                if not user_permission:
+                    message_to_chatbot = "[script] Page open denied."
+                    continue
+                log_msg("Page open approved")
                 page_content: str = get_page_content_summary(action_descriptor.action_data)
                 if page_content is "":
                     message_to_chatbot = f"[{AvailableActions.open.value}] Could not open page under url {action_descriptor.action_data}. Sorry."
