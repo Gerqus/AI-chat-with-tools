@@ -9,6 +9,7 @@ class AvailableActions(Enum):
     delete = "delete"
     google = "google"
     open = "open"
+    time = "time"
 
 class OpenAIRoles(Enum):
     user = "user",
@@ -37,6 +38,7 @@ tools = {
     AvailableActions.delete: "enables you to delete previous saved data from your long-term memory. Return format is a list of links with short description of its content. Potential use cases: increasing search results relevant, forgetting wrong information, dropping obsolete data from memory",
     AvailableActions.google: "enables you to search through internet for new information. Potential use cases: find new sources of knowledge, look for APIs, search for news, broaden potential sources of data",
     AvailableActions.open: "enables you to fetch summed up contents of a web page. Potential use cases: update your knowledge after cut-off, read APIs, read news, extend knowledge on user questions, answear user when asked to search on the internet for something",
+    AvailableActions.time: "enables you to get current date and time of user computer. Potential use cases: answer direct user question about time, make sure where are you located on time axis, make sure about user requests location on time axis, curating time related searches and operations",
 }
 
 openai_system_message += "\n" + "\n".join(["- [" + tool_name.value + "] -> " + tool_desc + ";" for tool_name, tool_desc in tools.items()])

@@ -81,7 +81,7 @@ def send_messages_history_to_open_ai(messages_history: List[MessageRepresentatio
     try:
         completion = openai.ChatCompletion.create(
             model=model,
-            max_tokens=100,
+            max_tokens=500,
             temperature=0.7,
             top_p=1,
             frequency_penalty=0,

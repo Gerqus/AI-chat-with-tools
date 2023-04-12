@@ -27,4 +27,4 @@ Run `main.py` file. It will log what is going on and what it does. Your input is
 
 Whole conversation will be printed to you in terminal and wrote into a chat file with timestamp in its name. Both outputs contain the very same content.
 
-Summarization is done on local machine and requires some resources. If you are getting out of memory errors, try decreading value of `summarization_batch_size` in src/constants.py file
+Summarization is done on local machine and requires some resources. If you are getting out of memory errors, try decreading value of "summarization_batch_size" in `src/constants.py` file

@@ -11,7 +11,9 @@ device = "cuda:0" if torch.cuda.is_available() else "cpu"
 device_map = {
     "": device,
 }
+print("Loading summarization model...")
 summarize = pipeline(task="summarization", model="facebook/bart-large-cnn", device_map=device_map)
+print("Loading summarization tokenizer...")
 tokenizer = AutoTokenizer.from_pretrained("facebook/bart-large-cnn")
 
 chat_model_used = 'gpt-3.5-turbo'
