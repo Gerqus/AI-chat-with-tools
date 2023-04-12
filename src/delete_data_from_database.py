@@ -7,6 +7,6 @@ def delete_data_from_database(client: Client, text_to_delete: str):
     if search_result is not None:
         entry_id = search_result[database_collection_name][0]["_additional"]["id"]
         client.data_object.delete(
-            class_name=database_collection_name,
+            class_name=str(database_collection_name),
             uuid=entry_id,
         )

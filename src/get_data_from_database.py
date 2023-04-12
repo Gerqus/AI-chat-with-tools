@@ -24,7 +24,7 @@ def get_data_from_database(client: Client, search_query: str) -> SearchResult:
     }
     response = (
         client.query
-            .get(database_collection_name, properties=[database_dataset_text_field_name])
+            .get(str(database_collection_name), properties=[database_dataset_text_field_name])
             .with_additional(["distance", "id"])
             .with_near_text(search_params)
             .with_limit(3)

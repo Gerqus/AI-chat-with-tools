@@ -16,7 +16,17 @@ class OpenAIRoles(Enum):
     system = "system",
     assistant = "assistant",
 
+tools = {
+    AvailableActions.retrieve: "enables you to retrieve data from your long-term memory that was previously stored using the 'store' tool. Be aware that you may not recall storing the data previously. Searches are based on query string similarity. The top 1, 2 or 3 most similar memories will be returned. Potential use cases: look for data that user told you about or you stored as potentially useful, retriving documents and many more, searching through knowledege base, record history of chat topics",
+    AvailableActions.store: """enables you to save data in your long-term memory, which can later be accessed using the 'retrieve' tool. Pair of store-retrieve tools works like this: when you write out: "[store] Anna likes to eat apples" This stores whole "Anna likes to eat apples" inside the memory, because this whole text was prefixed with [store] command. You will be send a response like this: "[script] Data stored in database. Potential use cases: store data that user provided, store potentially useful data, building knowledge base, retriving stored documents, checking if there was a history of some topic""",
+    AvailableActions.delete: "enables you to delete previous saved data from your long-term memory. Return format is a list of links with short description of its content. Potential use cases: increasing search results relevant, forgetting wrong information, dropping obsolete data from memory",
+    AvailableActions.google: "enables you to search through internet for new information. Potential use cases: find new sources of knowledge, look for APIs, search for news, broaden potential sources of data",
+    AvailableActions.open: "enables you to fetch summed up contents of a web page. Potential use cases: update your knowledge after cut-off, read APIs, read news, extend knowledge on user questions, answear user when asked to search on the internet for something",
+    AvailableActions.time: "enables you to get current date and time of user computer. Potential use cases: answer direct user question about time, make sure where are you located on time axis, make sure about user requests location on time axis, curating time related searches and operations",
+}
+
 openai_system_message = """As ChatGPT, you now have additional tools to enhance your assistance.
+Try using tools if not sure what to do, or there is a better way to do something with the tool.
 To use a tool, write "[<toolname>]" before your message, which will be entirely processed by the designated tool.
 The tool will respond using the same format: "[script] result of tool action".
 Messages prefixed with "[script]" do not come from the user.
@@ -30,18 +40,7 @@ If you want to use the tool and aswer to user, first use tool with properly form
 Tools chan be used in chains. To do so just use one tool after the other generating proper inputs for them.
 One example is to use [google] to look for data, then [open] to get information about the page and then [store] to save relevant information. Later you can use [retrieve] to get that information back.
 You can also use same tool many time subsequentially, mix, match, loop, check and many more. Do everything to fulfill current and potential future user requests.
-The list of available tools is as follows:""".replace("\n", " ")
-
-tools = {
-    AvailableActions.retrieve: "enables you to retrieve data from your long-term memory that was previously stored using the 'store' tool. Be aware that you may not recall storing the data previously. Searches are based on query string similarity. The top 1, 2 or 3 most similar memories will be returned. Potential use cases: look for data that user told you about or you stored as potentially useful, retriving documents and many more, searching through knowledege base, record history of chat topics",
-    AvailableActions.store: """enables you to save data in your long-term memory, which can later be accessed using the 'retrieve' tool. Pair of store-retrieve tools works like this: when you write out: "[store] Anna likes to eat apples" This stores whole "Anna likes to eat apples" inside the memory, because this whole text was prefixed with [store] command. You will be send a response like this: "[script] Data stored in database. Potential use cases: store data that user provided, store potentially useful data, building knowledge base, retriving stored documents, checking if there was a history of some topic""",
-    AvailableActions.delete: "enables you to delete previous saved data from your long-term memory. Return format is a list of links with short description of its content. Potential use cases: increasing search results relevant, forgetting wrong information, dropping obsolete data from memory",
-    AvailableActions.google: "enables you to search through internet for new information. Potential use cases: find new sources of knowledge, look for APIs, search for news, broaden potential sources of data",
-    AvailableActions.open: "enables you to fetch summed up contents of a web page. Potential use cases: update your knowledge after cut-off, read APIs, read news, extend knowledge on user questions, answear user when asked to search on the internet for something",
-    AvailableActions.time: "enables you to get current date and time of user computer. Potential use cases: answer direct user question about time, make sure where are you located on time axis, make sure about user requests location on time axis, curating time related searches and operations",
-}
-
-openai_system_message += "\n" + "\n".join(["- [" + tool_name.value + "] -> " + tool_desc + ";" for tool_name, tool_desc in tools.items()])
+The list of available tools is as follows: {}\n""".replace("\n", " ").format("\n".join(["- [" + tool_name.value + "] -> " + tool_desc + ";" for tool_name, tool_desc in tools.items()]))
 
 chat_model_used = "gpt-4"
 

@@ -4,3 +4,5 @@ torch
 googlesearch-python
 transformers
 datasets
+rich
+accelerate
