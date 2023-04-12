@@ -26,3 +26,5 @@ After installing all requirements and setting up docker with Weaviate, just run 
 Run `main.py` file. It will log what is going on and what it does. Your input is expected on "You: " prompt. Sometimes, when AI decides to use some tool, script will not wait for your imput, but will just execute tool script assigned to it and talk back to conversational AI either with execution result data or with a report of an error.
 
 Whole conversation will be printed to you in terminal and wrote into a chat file with timestamp in its name. Both outputs contain the very same content.
+
+Summarization is done on local machine and requires some resources. If you are getting out of memory errors, try decreading value of `summarization_batch_size` in src/constants.py file

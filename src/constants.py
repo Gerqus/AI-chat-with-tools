@@ -42,3 +42,5 @@ tools = {
 openai_system_message += "\n" + "\n".join(["- [" + tool_name.value + "] -> " + tool_desc + ";" for tool_name, tool_desc in tools.items()])
 
 chat_model_used = "gpt-4"
+
+summarization_batch_size = 16

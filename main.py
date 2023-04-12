@@ -9,7 +9,7 @@ from src.delete_data_from_database import delete_data_from_database
 from src.convert_query_results_to_chatbot_readable import \
     convert_query_results_to_chatbot_readable
 from src.get_permission_from_user import get_permission_from_user
-from src.get_page_content_summary import get_page_content_summary
+from src.get_page_content_summary import generate_ngrams, get_page_content_summary
 import logging
 import os
 import readline

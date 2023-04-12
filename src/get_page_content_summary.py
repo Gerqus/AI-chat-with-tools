@@ -1,23 +1,38 @@
 import re
-import openai
+from typing import List
+from bs4 import BeautifulSoup
+from datasets import Dataset
 import requests
-from src.constants import OpenAIRoles
-from newspaper import Article
+import torch
+from transformers import pipeline, AutoTokenizer
+from src.constants import summarization_batch_size
 
-from src.send_query_to_open_ai import MessageRepresentation
-
-parts_splitter = '=== !!! ==='
-
-system_message = MessageRepresentation(
-    f"""Your role is to extract key insights from the text. Your response limit is set to 1000 tokens - mind it.
-Text will consist of three parts: title, insights from previous processing up to this point and current text batch to summarize.
-Each part will be separated by the following string: {parts_splitter}
-The goal is to extract most useful information from whole text and. Be technical, as if you would list the most important points of the text.
-Be absolutelly sure to take into account insights from previous processing and DO NOT ABANDON them. Integrate them. You can use them to make your summary more complete.""",
-    OpenAIRoles.system,
-)
+device = "cuda:0" if torch.cuda.is_available() else "cpu"
+device_map = {
+    "": device,
+}
+summarize = pipeline(task="summarization", model="facebook/bart-large-cnn", device_map=device_map)
+tokenizer = AutoTokenizer.from_pretrained("facebook/bart-large-cnn")
 
 chat_model_used = 'gpt-3.5-turbo'
+
+def generate_ngrams(list_of_words: List[str], n: int, shift: int) -> List[str]:
+    ngrams = []
+    if n >= len(list_of_words):
+        return [' '.join(list_of_words)]
+    i = 0
+    for i in range(0, len(list_of_words) - n + 1, shift):
+        ngrams.append(' '.join(list_of_words[i:i+n]))
+    i += shift
+    ngrams.append(' '.join(list_of_words[i:i+n]))
+    return ngrams
+
+def summarize_text(batch):
+    inputs = tokenizer(batch["summary_text"], return_tensors="pt", padding=True, truncation=True)
+    inputs = {k: v.to(device) for k, v in inputs.items()}  # Move the inputs to the GPU
+    summaries = summarize.model.generate(**inputs)
+    summary_texts = [tokenizer.decode(summary, skip_special_tokens=True) for summary in summaries]
+    return {"summary_text": summary_texts}
 
 def get_page_content_summary(page_url: str) -> str:
     session = requests.Session()
@@ -27,54 +42,23 @@ def get_page_content_summary(page_url: str) -> str:
     response = session.get(page_url)
     if response.status_code == 200:
         page_source = response.text
-        article = Article(page_url)
-        article.set_html(page_source)
-        article.parse()
-        page_title = article.title
-        page_text = article.text
+        parsed = BeautifulSoup(page_source, 'html.parser')
+        page_title = parsed.title
+        page_text = parsed.text
         page_text = page_text.replace('\n', ' ')
         page_text = page_text.replace('\t', ' ')
         page_text = page_text.replace('\r', ' ')
         page_text = page_text.replace('  ', ' ')
 
-        text_batches = ['']
-        for page_sentences in re.split(r'\s', page_text):
-            current_batch_index = len(text_batches) - 1
-            if len(text_batches[current_batch_index]) + len(page_sentences) + 1 < 3000:
-                text_batches[current_batch_index] += " " + page_sentences
-            else:
-                text_batches.append(page_sentences)
-
-        print("Created total of: " + str(len(text_batches)) + " batches of text to summarize.")
-        for i, batch in enumerate(text_batches):
-            print(f"Batch #{i} length: {len(batch)}")
-
-
-        summary = '<no summary has been made yet>'
-        for i, batch in enumerate(text_batches):
-            print("Summarizing batch no. " + str(i + 1) + " of " + str(len(text_batches)) + " (batch len: " + str(len(batch)) + ")")
-
-            messages = [
-                system_message.to_msg(),
-                MessageRepresentation(
-                    parts_splitter.join([page_title, summary, batch]),
-                    OpenAIRoles.user,
-                ).to_msg()
-            ]
-
-            completion = openai.ChatCompletion.create(
-                model=chat_model_used,
-                max_tokens=1000,
-                temperature=0.7,
-                top_p=1,
-                frequency_penalty=0,
-                presence_penalty=0.6,
-                messages=messages
-            )
-
-            summary = completion.choices[0].message.content # type: ignore
-            print("Summary received: " + summary)
-
-        return summary
+        extracted_code_blocks = []
+        for code_block in parsed.find_all('code'):
+            extracted_code_blocks.append(code_block.text)
+        summaries: List[str] = [f"{page_title}: {sentence}" for sentence in re.split(r'(\w+?)\.', page_text) if len(sentence) > 0]
+        while len(summaries) > 1:
+            ngrams = generate_ngrams(summaries, 25, 5)
+            summaries_dataset = Dataset.from_dict({'summary_text': ngrams})
+            new_summaries_dataset = summaries_dataset.map(summarize_text, batched=True, batch_size=summarization_batch_size)
+            summaries = new_summaries_dataset["summary_text"]
+        return summaries[0]
     else:
         return ''
