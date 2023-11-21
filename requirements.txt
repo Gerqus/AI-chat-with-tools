@@ -2,7 +2,14 @@ weaviate-client
 openai
 torch
 googlesearch-python
-transformers
+git+https://github.com/huggingface/transformers
 datasets
 rich
 accelerate
+sentencepiece
+protobuf==3.20.3
+bitsandbytes
+datasets
+loralib
+sentencepiece
+yaspin

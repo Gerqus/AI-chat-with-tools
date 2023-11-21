@@ -59,7 +59,7 @@ log_msg("---------- STARTING CHAT ----------")
 try:
     while True:
         if message_to_chatbot == '':
-            print("You: (empty line to submit) ", end="")
+            print("You: (empty line to submit) ")
             lines = []
             try:
                 while True:
@@ -70,21 +70,22 @@ try:
             except EOFError:
                 pass
             message_to_chatbot = "\n".join(lines)
-            log_msg("--- me: " + message_to_chatbot)
 
             if message_to_chatbot.lower() == "exit":
                 log_msg("\nGoodbye!")
                 break
 
-            message_to_chatbot = "[user] " + message_to_chatbot
-
+            # message_to_chatbot = "[user] " + message_to_chatbot
+            add_message_to_history(
+                message_to_chatbot, OpenAIRoles.user, messages_history)
+            log_msg("--- me: " + message_to_chatbot)
         else:
+            add_message_to_history(
+                message_to_chatbot, OpenAIRoles.plugin, messages_history)
             log_msg("--- script: " + message_to_chatbot)
 
         # Process the user_message with the AI
-        add_message_to_history(
-            message_to_chatbot, OpenAIRoles.user, messages_history)
-        ai_response = send_messages_history_to_open_ai(
+        ai_response: str = send_messages_history_to_open_ai(
             messages_history, chat_model_used)
 
         if ai_response == '' or ai_response is None:
@@ -140,7 +141,7 @@ try:
                 if chat_bot_readable_results is None:
                     message_to_chatbot = f"[{AvailableActions.retrieve.value}] Could not retrieve data."
                 else:
-                    message_to_chatbot = "[script] Data retrieved successfully. Query results are:" + \
+                    message_to_chatbot = "[script] Data retrieved successfully. Query results are:\n" + \
                         chat_bot_readable_results
             continue
         elif action_descriptor.action_name == AvailableActions.delete:
@@ -150,7 +151,8 @@ try:
             else:
                 query_results = delete_data_from_database(
                     client, action_descriptor.action_data)
-                message_to_chatbot = "[script] Data deleted successfully."
+                message_to_chatbot = "[script] Successfully deleted entry: " + \
+                    query_results
             continue
         elif action_descriptor.action_name == AvailableActions.google:
             log_msg("[google] tool selected")

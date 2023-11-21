@@ -15,6 +15,7 @@ class OpenAIRoles(Enum):
     user = "user",
     system = "system",
     assistant = "assistant",
+    plugin = "plugin"
 
 tools = {
     AvailableActions.retrieve: "enables you to retrieve data from your long-term memory that was previously stored using the 'store' tool. Be aware that you may not recall storing the data previously. Searches are based on query string similarity. The top 1, 2 or 3 most similar memories will be returned. Potential use cases: look for data that user told you about or you stored as potentially useful, retriving documents and many more, searching through knowledege base, record history of chat topics",
@@ -42,6 +43,6 @@ One example is to use [google] to look for data, then [open] to get information 
 You can also use same tool many time subsequentially, mix, match, loop, check and many more. Do everything to fulfill current and potential future user requests.
 The list of available tools is as follows: {}\n""".replace("\n", " ").format("\n".join(["- [" + tool_name.value + "] -> " + tool_desc + ";" for tool_name, tool_desc in tools.items()]))
 
-chat_model_used = "gpt-4"
+chat_model_used = "decapoda-research/llama-13b-hf-int4"
 
 summarization_batch_size = 16
